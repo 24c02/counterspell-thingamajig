@@ -1,0 +1,217 @@
+<% require 'yaml' %>
+<% enemy_char = ">:3" %>
+<% win_char = "!" %>
+<% player_char = ":3" %>
+<% levels = YAML.load_file("levels.yml") %>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>:3 | Ɛ:<</title>
+  <style>
+      html { color-scheme: light dark; }
+      th, td { border: 1px solid; }
+      @keyframes enemy-flipped { from { transform: initial } to { transform: scale(-1, -1) } }
+      @keyframes enemy         { from { transform: initial} to {transform: scale(1, -1)} }
+      body {
+          width: 35em;
+          margin: 0 auto;
+          font-family: "Comic Sans MS", sans-serif;
+      }
+      td {
+          text-align: center;
+          width: 1.5em;
+          height: 1.5em;
+      }
+      /*td:empty { border: 1px solid darkslategray }*/
+      .hflip {
+          display: inline-block;
+          transform: scale(-1, 1);
+      }
+      .enemy {
+          display: inline-block;
+          animation: enemy 100ms;
+          transform: scale(1, 1);
+      }
+      .enemy-flipped {
+          display: inline-block;
+          animation: enemy-flipped 100ms;
+          transform: scale(-1, 1);
+      }
+  </style>
+  <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
+</head>
+<body _=" -- i'm so sorry
+def tile_at(x,y)
+  return the first <td[data-x='${x}'][data-y='${y}']/> in $currentLevel
+end
+def set_tile(tile,char,e,ef)
+  add .dirty to tile
+  put char into tile's innerText
+  if ef add .enemy-flipped to tile
+  else if e and not ef add .enemy to tile end
+end
+def update
+  remove .enemy from .dirty
+  remove .enemy-flipped from .dirty
+  put '' into .dirty
+  if not $gameOver
+      set_tile(tile_at($px,$py), '<%= player_char %>', false,false)
+  else
+      set_tile(tile_at($px,$py), ':-(', false,false)
+  end
+  set_tile(tile_at($ex,$ey), '<%= enemy_char %>', true,$mx ==-1)
+end
+def collide(x,y)
+  return (x < 0) or (x > $width)  or (y < 0) or (y > $height) or tile_at(x,y).innerText == '#'
+end
+
+def player_collide(x,y)
+  set tile to tile_at(x,y)
+  if tile.innerText == '<%= enemy_char %>' return l() end
+  if tile.innerText == '<%= win_char %>' return w() end
+  if tile.innerText == '$' return 'swap' end
+end
+def enemy_collide(x,y)
+  set tile to tile_at(x,y)
+  if tile.innerText == '<%= win_char %>' return l() end
+  if tile.innerText == '$' return 'swap' end
+  if tile.innerText == '@'
+    set $mx to $mx * -1
+--  set $my to $my * -1
+  end
+end
+def w
+  set $won to true
+  set $pauseInput to true
+  show #win
+end
+def load_level(level)
+  hide .needs-hidden
+  remove .dirty from .dirty
+  remove .enemy from .enemy
+  remove .enemy-flipped from .enemy-flipped
+  put level.dataset.name into #h1
+  put level.dataset.info into #info
+  set $gameOver to false
+  set $won to false
+  set $pauseInput to false
+  set $px to level.dataset.psx as Int
+  set $py to level.dataset.psy as Int
+  set $ex to level.dataset.esx as Int
+  set $ey to level.dataset.esy as Int
+  set $width to level.dataset.width as Int
+  set $height to level.dataset.height as Int
+  set $mx to level.dataset.imx as Int
+  set $my to level.dataset.imy as Int
+  tell <td/> in level put your dataset.content into you end
+  update()
+  show level
+  show #info
+end
+def next_level
+  set $currentLevel to next <level/> from $currentLevel
+  if $currentLevel is null
+    put 'that\'s it lol i ran out of level ideas<br/>thanks for playing!' into #h1
+    put 'view source if you wanna see something awful' into #info
+    hide .needs-hidden
+    show #info
+    exit
+  end
+  load_level($currentLevel)
+end
+on load
+  set $currentLevel to the first <level/>
+  load_level($currentLevel)
+end
+def l
+  set $gameOver to true
+  set $pauseInput to true
+  show #gameover
+end
+def restart_level
+  load_level($currentLevel)
+end
+on keydown
+-- if event.key == 'z' return next_level() end
+  if event.key == 'r' return restart_level() end
+  if event.key == ' '
+    if $gameOver restart_level() end
+    if $won next_level() end
+  end
+  if $pauseInput exit end
+  set nx to $px
+  set ny to $py
+  set nex to $ex
+  set ney to $ey
+  if (event.key == 'w') or (event.key == 'ArrowUp')
+    decrement ny
+    set ney to ney - (1 * $my)
+  else if (event.key is 'a') or (event.key is 'ArrowLeft')
+    decrement nx
+    set nex to nex - (1 * $mx)
+  else if (event.key is 's') or (event.key is 'ArrowDown')
+    increment ny
+    set ney to ney + (1 * $my)
+  else if ( event.key is 'd') or (event.key is 'ArrowRight')
+    increment nx
+    set nex to nex + (1 * $mx)
+  otherwise
+    exit
+  end
+  if collide(nx, ny)
+    set nx to $px
+    set ny to $py
+  end
+  if collide(nex, ney)
+    set nex to $ex
+    set ney to $ey
+  end
+  set pcr to player_collide(nx,ny)
+  set ecr to enemy_collide(nex,ney)
+  if ecr is 'swap' or pcr is 'swap'
+    set $ex to nx
+    set $ey to ny
+    set $px to nex
+    set $py to ney
+    update()
+    exit
+  end
+  set $ex to nex
+  set $ey to ney
+  set $px to nx
+  set $py to ny
+  if ($ex == $px and $ey == $py)
+    l()
+    set $ex to nx
+    set $ey to ny
+  end
+  update()
+end
+">
+  <h1>:3 | <span class="hflip">>:3</span></h1>
+  <h1 id="h1"></h1>
+<% levels.each do |level| %>
+  <% width = level['layout'][0].length - 1 %>
+  <% height = level['layout'].length - 1 %>
+  <level style='display: none' class='needs-hidden' data-width="<%= width %>" data-height="<%= height %>" <%= level.reject { |k, _| k == 'layout' }.map { |k, v| "data-#{k}=\"#{v}\"" }.join " " %> >
+    <table>
+      <% (0..height).each do |row| %>
+        <tr>
+          <% (0..width).each do |col| %>
+            <td data-x="<%= col %>" data-y="<%= row %>" data-content="<%= level['layout'][row][col] %>"><%= level['layout'][row][col] %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </table>
+  </level>
+<% end %>
+<p id="info" class="needs-hidden"></p>
+<% def clicky_thing(id, hs_callback, t1, t2)
+     "<h3 id='#{id}' class='needs-hidden' style='display: none'>#{t1} press space or click <a href='#' _='on click #{hs_callback}() halt end'>here</a> #{t2}</h3>\n"
+   end %>
+  <%= clicky_thing('gameover', 'restart_level', 'ya lost...', 'to restart :-P') %>
+  <%= clicky_thing('win', 'next_level', 'level completed!', 'to proceed...') %>
+</body>
+</html>

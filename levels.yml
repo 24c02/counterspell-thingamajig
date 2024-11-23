@@ -1,0 +1,52 @@
+- name: "01: the first one"
+  psx: 0
+  psy: 0
+  esx: 4
+  esy: 0
+  layout: [
+    [ '','','','','','#','#','#' ],
+    [ '#','#','#','#','','','#','#' ],
+    [ '#','#','#','','','','','!' ]
+  ]
+  imx: -1
+  imy: 1
+  info: you're :3 – WASD/arrow keys to move, go find that '!'!
+- name: "02: what's that @, cat?"
+  psx: 0
+  psy: 0
+  esx: 4
+  esy: 0
+  layout: [
+    [ '','','','','','#','#','#' ],
+    [ '#','#','','#','','','#','#' ],
+    [ '#','#','@','','','','','!' ]
+  ]
+  imx: -1
+  imy: 1
+  info: wait, can she do that? is it allowed?
+- name: "03: walls doesn't real"
+  psx: 2
+  psy: 0
+  esx: 3
+  esy: 4
+  layout: [ [ '#', '', '', '', '', '' ],
+            [ '#', '', '', '', '', '' ],
+            [ '', '#', '#', '#', '#', '$' ],
+            [ '!', '', '', '', '', '#' ],
+            [ '', '', '', '', '' ,'' ], ]
+  imx: -1
+  imy: -1
+  info: you wish you were over there <i>so bad</i> don't you
+- name: "04: irritating race"
+  psx: 2
+  psy: 0
+  esx: 0
+  esy: 2
+  layout: [
+    ['','','','','','','','$','!'],
+    ['','#','#','#','#','#','#','#','#'],
+    [ '','','','','','','','$','!' ],
+  ]
+  imx: 1
+  imy: 1
+  info: who do you want to be today?
